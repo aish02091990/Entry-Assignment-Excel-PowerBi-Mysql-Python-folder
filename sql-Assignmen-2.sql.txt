@@ -1,0 +1,174 @@
+create database project;
+use project;
+
+create table if not exists learners
+ (learner_id INT PRIMARY KEY,
+ full_name varchar(50),
+ Country varchar(20));
+ 
+select * from learners;
+desc learners;
+
+select * from courses;
+desc courses;
+
+INSERT INTO learners (learner_id, full_name, country)
+VALUES
+(1, 'Rupesh Kannan', 'India'),
+(2, 'Rahul Sharma', 'India'),
+(3, 'John Smith', 'USA'),
+(4, 'Emily Brown', 'UK'),
+(5, 'Amit Verma', 'Canada');
+
+select * from learners;
+desc learners;
+
+
+INSERT INTO courses (course_id, course_name, category, unit_price)
+VALUES
+(1020, 'Oracle SQL Basics',        'Database',     2500),
+(1091, 'Advanced PL/SQL',          'Database',     3500),
+(1080, 'Python for Data Analysis', 'Program',  3000),
+(1048, 'Power BI Fundamentals',    'Analytics',    2800),
+(1052, 'Full Stack Developer',     'OS', 2200);
+
+select * from courses;
+desc courses;
+
+CREATE TABLE if not exists purchases (
+    purchase_id INT PRIMARY KEY,
+    learner_id INT,
+    course_id INT,
+    quantity INT,
+    purchase_date DATE,
+    CONSTRAINT fk_learner
+        FOREIGN KEY (learner_id) REFERENCES learners(learner_id),
+    CONSTRAINT fk_course
+        FOREIGN KEY (course_id) REFERENCES courses(course_id)
+);
+
+select * from purchases;
+desc purchases;
+
+select course_id,course_name,unit_price as "total_revenue"
+from courses
+group by course_id,course_name;
+
+
+INSERT INTO purchases
+(purchase_id, learner_id, course_id, quantity, purchase_date)
+VALUES
+(10, 1, 101, 1,  '2025-01-05'),
+(1102, 2, 102, 1,  '2025-01-10'),
+(1203, 3, 103, 2,  '2025-01-15'),
+(1304, 4, 104, 1, '2025-01-20'),
+(1505, 5, 105, 1, '2025-01-25'),
+(1608, 1, 103, 1, '2025-02-01'),
+(1809, 2, 104, 2, '2025-02-05'),
+(1011, 3, 101, 1, '2025-02-10');
+
+desc courses;
+
+ALTER TABLE courses
+MODIFY COLUMN unit_price DECIMAL(10,2);
+
+SELECT
+    l.learner_id,
+    l.full_name,
+    c.course_name,
+    c.category,
+    p.quantity,
+    p.purchase_date,
+    c.unit_price,
+    (p.quantity * c.unit_price) AS total_amount
+FROM learners l
+INNER JOIN purchases p
+    ON l.learner_id = p.learner_id
+INNER JOIN courses c
+    ON p.course_id = c.course_id;
+
+
+
+SELECT
+    l.learner_id,
+    l.full_name,
+    c.course_name,
+    p.quantity,
+    p.purchase_date
+FROM learners l
+LEFT JOIN purchases p
+    ON l.learner_id = p.learner_id
+LEFT JOIN courses c
+    ON p.course_id = c.course_id;	
+
+
+SELECT
+    l.full_name,
+    c.course_name,
+    p.quantity,
+    p.purchase_date
+FROM learners l
+RIGHT JOIN purchases p
+    ON l.learner_id = p.learner_id
+RIGHT JOIN courses c
+    ON p.course_id = c.course_id;
+
+
+SELECT
+    l.learner_id,
+    l.full_name,
+    c.course_name,
+    c.category,
+    p.quantity,
+    c.unit_price,
+    (p.quantity * c.unit_price) AS total_amount,
+    p.purchase_date
+FROM learners l
+INNER JOIN purchases p
+    ON l.learner_id = p.learner_id
+INNER JOIN courses c
+    ON p.course_id = c.course_id
+ORDER BY l.learner_id, p.purchase_date;
+
+SELECT
+    c.course_id,
+    c.course_name,
+    c.category,
+    SUM(p.quantity) AS total_quantity_sold
+FROM courses c
+JOIN purchases p
+    ON c.course_id = p.course_id
+GROUP BY
+    c.course_id,
+    c.course_name,
+    c.category
+ORDER BY
+    total_quantity_sold DESC
+LIMIT 3;
+
+SELECT
+    c.category,
+    SUM(p.quantity * c.unit_price) AS total_revenue,
+    COUNT(DISTINCT p.learner_id) AS unique_learners
+FROM courses c
+JOIN purchases p
+    ON c.course_id = p.course_id
+GROUP BY
+    c.category
+ORDER BY
+    total_revenue DESC;
+    
+    SELECT
+    l.learner_id,
+    l.full_name,
+    COUNT(DISTINCT c.category) AS category_count
+FROM learners l
+JOIN purchases p
+    ON l.learner_id = p.learner_id
+JOIN courses c
+    ON p.course_id = c.course_id
+GROUP BY
+    l.learner_id,
+    l.full_name
+HAVING
+    COUNT(DISTINCT c.category) > 1;
